@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "input.h"
 
@@ -51,22 +52,50 @@ int read_int(const char *prompt, long min, long max, int *result) {
 
     printf("%s", prompt);
     if (fgets(line, sizeof line, stdin) == NULL)
+        return 0;                                   /* EOF */
+
+    /* 1. Line too long: buffer full and no '\n' yet. */
+    size_t len = strlen(line);
+    if (len > 0 && line[len - 1] != '\n' && len == sizeof line - 1) {
+        int c = getchar();
+        if (c != '\n' && c != EOF) {
+            discard_rest_of_line();
+            printf("Error: input too long.\n");
+            return 0;
+        }
+    }
+
+    /* 2. Convert. errno must be cleared first, strtol only sets it on error. */
+    errno = 0;
+    value = strtol(line, &end, 10);
+
+    /* 3a. Nothing converted (empty line, "abc"). */
+    if (end == line) {
+        printf("Error: not a valid number.\n");
         return 0;
+    }
 
-    /* TODO 1: if the line has no '\n' and the buffer is full, discard the
-               rest of the line and reject (same idea as read_text). */
+    /* 3b. Overflow, or does not fit in an int. */
+    if (errno == ERANGE || value < INT_MIN || value > INT_MAX) {
+        printf("Error: number out of range.\n");
+        return 0;
+    }
 
-    /* TODO 2: errno = 0; value = strtol(line, &end, 10); */
+    /* 3c. Trailing garbage ("12abc"). Only whitespace may follow. */
+    for (; *end; end++) {
+        if (!isspace((unsigned char)*end)) {
+            printf("Error: not a valid number.\n");
+            return 0;
+        }
+    }
 
-    /* TODO 3: reject if: nothing was converted (end == line),
-               errno == ERANGE, or anything other than whitespace
-               follows the number. */
+    /* 4. Caller-defined interval. */
+    if (value < min || value > max) {
+        printf("Error: value must be between %ld and %ld.\n", min, max);
+        return 0;
+    }
 
-    /* TODO 4: reject if value < min or value > max
-               (and if it does not fit in an int, since result is int). */
-
-    /* TODO 5: *result = (int)value; return 1; */
-
-    (void)end; (void)value; (void)min; (void)max; (void)result;
-    return 0;
+    /* 5. Success. */
+    *result = (int)value;
+    return 1;
 }
