@@ -29,6 +29,7 @@ int    stack_push(Stack *s, Action a);
 int    stack_pop(Stack *s, Action *out);
 int    stack_peek(const Stack *s, Action *out);
 int    stack_is_empty(const Stack *s);
+int    stack_size(const Stack *s);
 void   stack_print_last(const Stack *s, int n);
 void   stack_free(Stack *s);
 
