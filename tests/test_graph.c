@@ -17,14 +17,15 @@ static void show_bfs(const Graph *g, int origin) {
 int main(void) {
     Graph *g = graph_create();
 
-    /* ids added out of order, so slot index != id order */
+    // ids added out of order, 
+    // so slot index != id order
     int ids[] = {500, 100, 300, 200, 400, 900, 700, 800};
     for (int i = 0; i < 8; i++) graph_add_vertex(g, ids[i]);
     check("vertex count", graph_vertex_count(g), 8);
     check("duplicate vertex 100", graph_add_vertex(g, 100), GRAPH_ERR_EXISTS);
     check("invalid vertex 0", graph_add_vertex(g, 0), GRAPH_ERR_INVALID);
 
-    /* edges */
+    // edges 
     check("add (500,100)", graph_add_edge(g, 500, 100), GRAPH_OK);
     check("duplicate (100,500)", graph_add_edge(g, 100, 500), GRAPH_ERR_EXISTS);
     check("duplicate (500,100)", graph_add_edge(g, 500, 100), GRAPH_ERR_EXISTS);
@@ -40,32 +41,32 @@ int main(void) {
     check("direct (100,300)", graph_has_edge(g, 100, 300), 0);
     check("direct with missing id", graph_has_edge(g, 100, 999), GRAPH_ERR_NOTFOUND);
 
-    // BFS: neighbors in ascending id order 
-    show_bfs(g, 500);          /* 500 -> 100 -> 200 -> 300 -> 400 */
-    show_bfs(g, 900);          /* 900 (isolated) */
-    show_bfs(g, 700);          /* 700 -> 800 (other component) */
-    show_bfs(g, 12345);        /* error -4 */
+    // bfs: neighbors in ascending id order 
+    show_bfs(g, 500);          // 500 -> 100 -> 200 -> 300 -> 400
+    show_bfs(g, 900);          // 900 (isolated)
+    show_bfs(g, 700);          // 700 -> 800 (other component)
+    show_bfs(g, 12345);        // error -4
 
-    /* paths */
+    // paths
     check("path 500->400", graph_has_path(g, 500, 400), 1);
     check("path 500->700 (disconnected)", graph_has_path(g, 500, 700), 0);
     check("path 900->900", graph_has_path(g, 900, 900), 1);
     check("path with missing id", graph_has_path(g, 500, 12345), GRAPH_ERR_NOTFOUND);
 
-    /* remove a vertex with several edges */
+    // remove a vertex with several edges
     check("remove vertex 500", graph_remove_vertex(g, 500), GRAPH_OK);
     check("remove vertex 500 again", graph_remove_vertex(g, 500), GRAPH_ERR_NOTFOUND);
     check("edge to removed vertex", graph_has_edge(g, 100, 500), GRAPH_ERR_NOTFOUND);
-    show_bfs(g, 100);          /* 100 -> 400 */
+    show_bfs(g, 100);          // 100 -> 400
     check("path 100->300 after removal", graph_has_path(g, 100, 300), 0);
 
-    /* re-adding the id must not bring old edges back */
+    // re-adding the id must not bring old edges back
     graph_add_vertex(g, 500);
-    show_bfs(g, 500);          /* 500 only */
+    show_bfs(g, 500);          // 500 only
 
     graph_free(g);
 
-    /* capacity: 101st vertex rejected */
+    // capacity: 101st vertex rejected
     g = graph_create();
     int rc = GRAPH_OK;
     for (int id = 1; id <= 100; id++) rc = graph_add_vertex(g, id);

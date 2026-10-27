@@ -21,15 +21,15 @@ int read_text(const char *prompt, char *dest, size_t size) {
     printf("%s", prompt);
 
     if (fgets(dest, (int)size, stdin) == NULL)
-        return 0;                                   /* EOF */
+        return 0;                                   // EOF
 
     size_t len = strlen(dest);
 
     if (len > 0 && dest[len - 1] == '\n') {
-        dest[len - 1] = '\0';                       /* whole line fit */
+        dest[len - 1] = '\0';                       // whole line fit
     } else if (len == size - 1) {
-        /* Buffer filled without finding '\n': the line either has exactly
-           size-1 characters or is longer. Peek at the next char. */
+        // Buffer filled without finding \n: the line either has exactly
+        //   size-1 characters or is longer. Peek at the next char
         int c = getchar();
         if (c != '\n' && c != EOF) {
             discard_rest_of_line();
@@ -52,9 +52,9 @@ int read_int(const char *prompt, long min, long max, int *result) {
 
     printf("%s", prompt);
     if (fgets(line, sizeof line, stdin) == NULL)
-        return 0;                                   /* EOF */
+        return 0;                                   // EOF 
 
-    /* 1. Line too long: buffer full and no '\n' yet. */
+    //  Line too long buffer full and no \n yet
     size_t len = strlen(line);
     if (len > 0 && line[len - 1] != '\n' && len == sizeof line - 1) {
         int c = getchar();
@@ -65,23 +65,23 @@ int read_int(const char *prompt, long min, long max, int *result) {
         }
     }
 
-    /* 2. Convert. errno must be cleared first, strtol only sets it on error. */
+    // Convert errno must be cleared first strtol only sets it on error
     errno = 0;
     value = strtol(line, &end, 10);
 
-    /* 3a. Nothing converted (empty line, "abc"). */
+    // Nothing converted (empty line, "abc")
     if (end == line) {
         printf("Error: not a valid number.\n");
         return 0;
     }
 
-    /* 3b. Overflow, or does not fit in an int. */
+    // Overflow or does not fit in an int
     if (errno == ERANGE || value < INT_MIN || value > INT_MAX) {
         printf("Error: number out of range.\n");
         return 0;
     }
 
-    /* 3c. Trailing garbage ("12abc"). Only whitespace may follow. */
+    // Trailing garbage ("12abc") only whitespace may follow
     for (; *end; end++) {
         if (!isspace((unsigned char)*end)) {
             printf("Error: not a valid number.\n");
@@ -89,13 +89,13 @@ int read_int(const char *prompt, long min, long max, int *result) {
         }
     }
 
-    /* 4. Caller-defined interval. */
+    // Caller-defined interval
     if (value < min || value > max) {
         printf("Error: value must be between %ld and %ld.\n", min, max);
         return 0;
     }
 
-    /* 5. Success. */
+    // Success
     *result = (int)value;
     return 1;
 }

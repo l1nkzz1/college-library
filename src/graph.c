@@ -2,7 +2,7 @@
 #include "graph.h"
 #include "queue.h"
 
-/* ---------- internal helpers ---------- */
+// internal helpers
 
 static int find_index(const Graph *g, int id) {
     if (g == NULL || id <= 0) return -1;
@@ -11,8 +11,8 @@ static int find_index(const Graph *g, int id) {
     return -1;
 }
 
-/* Fills order[] with the used slots sorted by ascending id
-   (insertion sort). Returns how many there are. */
+// Fills order[] with the used slots sorted by ascending id
+// insertion sort. Returns how many there are
 static int slots_by_id(const Graph *g, int order[GRAPH_MAX]) {
     int n = 0;
     for (int i = 0; i < GRAPH_MAX; i++) {
@@ -27,17 +27,17 @@ static int slots_by_id(const Graph *g, int order[GRAPH_MAX]) {
     return n;
 }
 
-/* ---------- create / free ---------- */
+// create and free
 
 Graph *graph_create(void) {
-    return calloc(1, sizeof(Graph));   /* everything starts at zero */
+    return calloc(1, sizeof(Graph));   // everything starts at 0
 }
 
 void graph_free(Graph *g) {
     free(g);
 }
 
-/* ---------- vertices ---------- */
+// vertices
 
 int graph_add_vertex(Graph *g, int id) {
     if (g == NULL || id <= 0) return GRAPH_ERR_INVALID;
@@ -48,7 +48,7 @@ int graph_add_vertex(Graph *g, int id) {
             g->used[i] = 1;
             g->ids[i] = id;
             g->count++;
-            return GRAPH_OK;      /* row/column are already zero */
+            return GRAPH_OK;      //  row and column are already 0
         }
     }
     return GRAPH_ERR_FULL;
@@ -59,8 +59,8 @@ int graph_remove_vertex(Graph *g, int id) {
     if (idx < 0) return GRAPH_ERR_NOTFOUND;
 
     for (int k = 0; k < GRAPH_MAX; k++) {
-        g->adj[idx][k] = 0;       /* row */
-        g->adj[k][idx] = 0;       /* column */
+        g->adj[idx][k] = 0;       // row 
+        g->adj[k][idx] = 0;       // column 
     }
     g->used[idx] = 0;
     g->ids[idx] = 0;
@@ -76,14 +76,14 @@ int graph_vertex_count(const Graph *g) {
     return g ? g->count : 0;
 }
 
-/* ---------- edges ---------- */
+// edges
 
 int graph_add_edge(Graph *g, int a, int b) {
     int i = find_index(g, a);
     int j = find_index(g, b);
     if (i < 0 || j < 0) return GRAPH_ERR_NOTFOUND;
     if (i == j) return GRAPH_ERR_LOOP;
-    if (g->adj[i][j]) return GRAPH_ERR_EXISTS;   /* (A,B) or (B,A) */
+    if (g->adj[i][j]) return GRAPH_ERR_EXISTS;   // a,b or b,a
 
     g->adj[i][j] = 1;
     g->adj[j][i] = 1;
@@ -108,7 +108,7 @@ int graph_has_edge(const Graph *g, int a, int b) {
     return g->adj[i][j] ? 1 : 0;
 }
 
-/* ---------- BFS ---------- */
+// bfs 
 
 int graph_bfs(const Graph *g, int origin, List **out) {
     if (g == NULL || out == NULL) return GRAPH_ERR_INVALID;
@@ -125,7 +125,7 @@ int graph_bfs(const Graph *g, int origin, List **out) {
     Queue *queue = queue_create();
     if (list == NULL || queue == NULL) goto fail;
 
-    visited[start] = 1;                       /* marked when entering the queue */
+    visited[start] = 1;                       // marked when entering the queue
     if (!queue_enqueue(queue, start) || !list_append(list, origin))
         goto fail;
 
@@ -133,7 +133,7 @@ int graph_bfs(const Graph *g, int origin, List **out) {
         int cur;
         queue_dequeue(queue, &cur);
 
-        for (int k = 0; k < n; k++) {         /* ascending id order */
+        for (int k = 0; k < n; k++) {         // ascending id order
             int j = order[k];
             if (g->adj[cur][j] && !visited[j]) {
                 visited[j] = 1;
@@ -156,7 +156,7 @@ fail:
 int graph_has_path(const Graph *g, int a, int b) {
     if (g == NULL) return GRAPH_ERR_INVALID;
     if (find_index(g, a) < 0 || find_index(g, b) < 0)
-        return GRAPH_ERR_NOTFOUND;            /* absent id is not "false" */
+        return GRAPH_ERR_NOTFOUND;            // absent id is not false
 
     List *reach;
     int rc = graph_bfs(g, a, &reach);
